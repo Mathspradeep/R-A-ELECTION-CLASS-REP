@@ -75,7 +75,7 @@
 
     const VALID_STUDENTS = Array.from({ length: 30 }, (_, i) => `STU1${String(i + 1).padStart(2, '0')}`);
 
-    // Helper: Compress heavy image files before sending to Firebase
+    // Compress heavy image files before sending to Firebase
     const compressAndConvertImage = (file, callback) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -84,7 +84,7 @@
         img.src = event.target.result;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 300; // Resize photo max dimension to 300px
+          const MAX_SIZE = 250; // Compress image down to small 250px square
           let width = img.width;
           let height = img.height;
 
@@ -103,7 +103,7 @@
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
           callback(dataUrl);
         };
       };
@@ -140,8 +140,18 @@
             if (data) {
               if (data.votes) setVotes(data.votes);
               if (data.votedStudents) setVotedStudents(data.votedStudents);
-              if (data.candidates) setCandidates(data.candidates);
+              if (data.candidates && Array.isArray(data.candidates) && data.candidates.length > 0) {
+                setCandidates(data.candidates);
+              }
               if (data.stage) setElectionStage(data.stage);
+            } else {
+              // Initialize database with default data if empty
+              db.ref("election_data").set({
+                votes: { c1: 0, c2: 0, c3: 0 },
+                votedStudents: [],
+                candidates: DEFAULT_CANDIDATES,
+                stage: "voting"
+              });
             }
           });
           return () => electionRef.off();
@@ -160,7 +170,11 @@
         setElectionStage(st);
 
         if (db) {
-          db.ref("election_data").set({ votes: v, votedStudents: s, candidates: c, stage: st });
+          db.ref("election_data").set({ votes: v, votedStudents: s, candidates: c, stage: st })
+            .catch((err) => {
+              console.error("Firebase write error:", err);
+              setMessage({ type: "error", text: "Firebase Error: " + err.message + ". Check Firebase Rules!" });
+            });
         }
       };
 
@@ -182,10 +196,10 @@
           if (targetCandidateId) {
             const updated = candidates.map((c) => (c.id === targetCandidateId ? { ...c, avatar: compressedBase64 } : c));
             syncDatabase(undefined, undefined, updated);
-            setMessage({ type: "success", text: "Photo uploaded & compressed live!" });
+            setMessage({ type: "success", text: "Candidate photo updated!" });
           } else {
             setNewCandPhoto(compressedBase64);
-            setMessage({ type: "success", text: "Photo ready for new candidate!" });
+            setMessage({ type: "success", text: "Photo attached! Now click 'Add Candidate'." });
           }
         });
       };
@@ -216,7 +230,7 @@
         setNewCandBadge("");
         setNewCandManifesto("");
         setNewCandPhoto(null);
-        setMessage({ type: "success", text: `Candidate '${newCandidate.name}' added!` });
+        setMessage({ type: "success", text: `Candidate '${newCandidate.name}' added successfully!` });
       };
 
       const handleVoteSubmit = (e) => {
@@ -259,9 +273,9 @@
       };
 
       const resetElection = () => {
-        if (confirm("Are you sure you want to reset all votes and restore default candidates?")) {
+        if (confirm("Are you sure you want to reset all votes and candidates?")) {
           syncDatabase({ c1: 0, c2: 0, c3: 0 }, [], DEFAULT_CANDIDATES, "voting");
-          setMessage({ type: "info", text: "Election data reset to defaults." });
+          setMessage({ type: "info", text: "Election reset to initial state." });
         }
       };
 
@@ -299,10 +313,10 @@
             </div>
           </header>
 
-          {/* Navigation Tabs - ONLY Vote, Candidates, and Admin */}
+          {/* Navigation Tabs */}
           <div className="flex bg-white p-1.5 rounded-xl shadow-sm border mb-6 gap-1">
             <button onClick={() => { setActiveTab("vote"); setVoteSuccess(false); }} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'vote' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>🗳️ Cast Vote</button>
-            <button onClick={() => setActiveTab("candidates")} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'candidates' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>👥 Candidates</button>
+            <button onClick={() => setActiveTab("candidates")} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'candidates' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>👥 Candidates ({candidates.length})</button>
             <button onClick={() => setActiveTab("admin")} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'admin' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>🔒 Admin</button>
           </div>
 
@@ -313,7 +327,7 @@
             </div>
           )}
 
-          {/* TAB 1: VOTE ONLY */}
+          {/* TAB 1: VOTE */}
           {activeTab === "vote" && (
             <div className="bg-white rounded-2xl shadow-sm border p-6">
               {voteSuccess ? (
@@ -321,7 +335,7 @@
                   <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">✓</div>
                   <h2 className="text-2xl font-extrabold text-slate-900">Your Vote Has Been Cast Successfully!</h2>
                   <p className="text-sm text-slate-500 max-w-md mx-auto">
-                    Thank you for participating. Your response has been securely recorded in the official database.
+                    Thank you for participating. Your response has been securely recorded.
                   </p>
                   <button onClick={() => setVoteSuccess(false)} className="mt-4 bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl text-sm">
                     Back to Voting Form
@@ -394,14 +408,14 @@
             </div>
           )}
 
-          {/* TAB 3: ADMIN (SECRET RESULTS & CONTROLS) */}
+          {/* TAB 3: ADMIN */}
           {activeTab === "admin" && (
             <div>
               {!isAdminAuthenticated ? (
                 <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-8 text-center space-y-4">
                   <div className="text-3xl">🔒</div>
                   <h2 className="text-xl font-bold">Admin Portal</h2>
-                  <p className="text-xs text-slate-500">Enter secret PIN to view live results, upload candidate photos, and manage election controls.</p>
+                  <p className="text-xs text-slate-500">Enter secret PIN to view live results, add candidates, and upload photos.</p>
                   <form onSubmit={handleAdminLogin} className="space-y-4">
                     <input
                       type="password"
@@ -477,46 +491,49 @@
                     </div>
                   </div>
 
-                  {/* Photo Upload Manager */}
-                  <div className="bg-white rounded-2xl shadow-sm border p-6">
-                    <h2 className="text-lg font-bold mb-4">📷 Upload / Change Candidate Photos</h2>
-                    <p className="text-xs text-slate-500 mb-4">Click "Change Photo" below to pick any image from your camera/gallery. It will auto-compress and update instantly on all student devices.</p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {candidates.map((cand) => (
-                        <div key={cand.id} className="border p-4 rounded-xl text-center">
-                          <img 
-                            src={cand.avatar} 
-                            onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cand.name)}&background=2563eb&color=fff`; }} 
-                            className="w-16 h-16 rounded-full object-cover mx-auto mb-2 border bg-slate-100" 
-                          />
-                          <div className="font-bold text-sm">{cand.name}</div>
-                          <label className="mt-3 block cursor-pointer bg-blue-50 text-blue-600 border border-blue-200 py-1.5 px-3 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">
-                            Change Photo
-                            <input type="file" accept="image/*" onChange={(e) => handleImageFileChange(e, cand.id)} className="hidden" />
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   {/* Add New Candidate */}
                   <div className="bg-white rounded-2xl shadow-sm border p-6">
                     <h2 className="text-lg font-bold mb-4">➕ Add New Candidate</h2>
                     <form onSubmit={handleAddCandidate} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" placeholder="Candidate Name" value={newCandName} onChange={(e) => setNewCandName(e.target.value)} className="p-2.5 border rounded-xl text-sm" />
-                        <input type="text" placeholder="Role/Badge" value={newCandBadge} onChange={(e) => setNewCandBadge(e.target.value)} className="p-2.5 border rounded-xl text-sm" />
+                        <input type="text" placeholder="Candidate Name *" value={newCandName} onChange={(e) => setNewCandName(e.target.value)} className="p-2.5 border rounded-xl text-sm font-semibold" />
+                        <input type="text" placeholder="Role / Badge (e.g. Sports Lead)" value={newCandBadge} onChange={(e) => setNewCandBadge(e.target.value)} className="p-2.5 border rounded-xl text-sm" />
                       </div>
-                      <textarea placeholder="Manifesto / Description" value={newCandManifesto} onChange={(e) => setNewCandManifesto(e.target.value)} className="w-full p-2.5 border rounded-xl text-sm"></textarea>
+                      <textarea placeholder="Manifesto / Agenda" value={newCandManifesto} onChange={(e) => setNewCandManifesto(e.target.value)} className="w-full p-2.5 border rounded-xl text-sm"></textarea>
+                      
                       <div className="flex items-center gap-3">
                         <label className="cursor-pointer bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-semibold border inline-block">
-                          📁 Upload Photo
+                          📁 Select Photo
                           <input type="file" accept="image/*" onChange={(e) => handleImageFileChange(e)} className="hidden" />
                         </label>
-                        {newCandPhoto && <span className="text-xs text-green-600 font-bold">✓ Photo Processed & Ready</span>}
+                        {newCandPhoto && <span className="text-xs text-green-600 font-bold">✓ Photo Attached & Compressed</span>}
                       </div>
-                      <button type="submit" className="block bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl text-xs shadow">Add Candidate</button>
+
+                      <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm shadow">
+                        + Save & Add Candidate
+                      </button>
                     </form>
+                  </div>
+
+                  {/* Photo Upload Manager */}
+                  <div className="bg-white rounded-2xl shadow-sm border p-6">
+                    <h2 className="text-lg font-bold mb-2">📷 Change Existing Candidate Photos</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      {candidates.map((cand) => (
+                        <div key={cand.id} className="border p-4 rounded-xl text-center bg-slate-50">
+                          <img 
+                            src={cand.avatar} 
+                            onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(cand.name)}&background=2563eb&color=fff`; }} 
+                            className="w-16 h-16 rounded-full object-cover mx-auto mb-2 border bg-white" 
+                          />
+                          <div className="font-bold text-sm text-slate-900">{cand.name}</div>
+                          <label className="mt-3 block cursor-pointer bg-blue-600 text-white py-1.5 px-3 rounded-lg text-xs font-semibold hover:bg-blue-700 transition">
+                            Upload New Photo
+                            <input type="file" accept="image/*" onChange={(e) => handleImageFileChange(e, cand.id)} className="hidden" />
+                          </label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Control Election */}
@@ -527,7 +544,7 @@
                       <button onClick={() => { syncDatabase(undefined, undefined, undefined, "closed"); triggerConfetti(); }} className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${electionStage === 'closed' ? 'bg-amber-600 text-white' : 'bg-slate-100'}`}>Close Voting & Announce Winner</button>
                     </div>
                     <button onClick={resetElection} className="bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-xs font-bold w-full hover:bg-red-100 transition">
-                      Reset Election & Clean Photos
+                      Reset Election Data
                     </button>
                   </div>
                 </div>
