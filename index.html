@@ -26,10 +26,10 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // YOUR SECRET ADMIN PIN (Default: 1234)
+    // SECRET ADMIN PIN
     const SECRET_ADMIN_PIN = "1234";
 
-    // YOUR FIREBASE CONFIGURATION
+    // FIREBASE CONFIGURATION
     const firebaseConfig = {
       apiKey: "AIzaSyAnCWfmpa9y-VZ7xZHIAWtJo7wr9THKOxs",
       authDomain: "class-rep-election.firebaseapp.com",
@@ -73,9 +73,63 @@
       }
     ];
 
-    const VALID_STUDENTS = Array.from({ length: 30 }, (_, i) => `STU1${String(i + 1).padStart(2, '0')}`);
+    // OFFICIAL CLASS REGISTER (53 STUDENTS)
+    const STUDENT_ROSTER = [
+      { rollNo: "1", name: "AADIBHADRA KA", admissionNo: "E042604522" },
+      { rollNo: "2", name: "ABISHA S", admissionNo: "E042606639" },
+      { rollNo: "3", name: "AMARNATH R", admissionNo: "E042606575" },
+      { rollNo: "4", name: "ASWITH K", admissionNo: "E042603103" },
+      { rollNo: "5", name: "BHARATH KUMAR M", admissionNo: "E042605421" },
+      { rollNo: "6", name: "CHRISTOPHER RAJ C", admissionNo: "E042605216" },
+      { rollNo: "7", name: "DHAKSHIN V", admissionNo: "E042603550" },
+      { rollNo: "8", name: "DHANASRI K", admissionNo: "E042605519" },
+      { rollNo: "9", name: "DHARAN KAMALESH E", admissionNo: "E042604364" },
+      { rollNo: "10", name: "DHARSHINI P", admissionNo: "E042606472" },
+      { rollNo: "11", name: "DHARVIN G", admissionNo: "E042606759" },
+      { rollNo: "12", name: "DHINESH BABU V", admissionNo: "E042603947" },
+      { rollNo: "13", name: "DINAKARAN T", admissionNo: "E042604355" },
+      { rollNo: "14", name: "GOWTHAM S", admissionNo: "E042606465" },
+      { rollNo: "15", name: "HARIHARAN M", admissionNo: "E042606257" },
+      { rollNo: "16", name: "HRITHI KRISHNA S", admissionNo: "E042604669" },
+      { rollNo: "17", name: "JAI KARTHICK S", admissionNo: "E042604725" },
+      { rollNo: "18", name: "JAYAPRAKSH R", admissionNo: "E042606402" },
+      { rollNo: "19", name: "JITHESH M", admissionNo: "E042604931" },
+      { rollNo: "20", name: "KAMALESH T", admissionNo: "E042603446" },
+      { rollNo: "21", name: "KANISHK R", admissionNo: "E042605355" },
+      { rollNo: "22", name: "KANISHKAR S S", admissionNo: "E042603427" },
+      { rollNo: "23", name: "KAUSHIK S", admissionNo: "E042606582" },
+      { rollNo: "24", name: "KAVIN J", admissionNo: "E042606686" },
+      { rollNo: "25", name: "KAVINESH G", admissionNo: "E042606384" },
+      { rollNo: "26", name: "KISHWANTH G", admissionNo: "E042604665" },
+      { rollNo: "27", name: "LOKESHSARAN G", admissionNo: "E042605263" },
+      { rollNo: "28", name: "MADHAVAN K", admissionNo: "E042606271" },
+      { rollNo: "29", name: "MADHEEHA FATJIMA S", admissionNo: "E042606538" },
+      { rollNo: "30", name: "MAHALAKSHMI G", admissionNo: "E042605319" },
+      { rollNo: "31", name: "MANIKANDAN S", admissionNo: "E042606125" },
+      { rollNo: "32", name: "MISHAL FATHIMA", admissionNo: "E042604523" },
+      { rollNo: "33", name: "MITHRA S", admissionNo: "E042602811" },
+      { rollNo: "34", name: "MOHAMED ANAS A", admissionNo: "E042606594" },
+      { rollNo: "35", name: "MOULEESH S", admissionNo: "E042606138" },
+      { rollNo: "36", name: "MYLESHWARAN S", admissionNo: "E042604636" },
+      { rollNo: "37", name: "NARENDRA PRASAD B", admissionNo: "E042604616" },
+      { rollNo: "38", name: "PRANEETH K", admissionNo: "E042606785" },
+      { rollNo: "39", name: "PRATHEESH J", admissionNo: "E042606378" },
+      { rollNo: "40", name: "PRAVEENA D", admissionNo: "E042606475" },
+      { rollNo: "41", name: "PREETHI S", admissionNo: "E042606673" },
+      { rollNo: "42", name: "PREMIKKA K", admissionNo: "E042606461" },
+      { rollNo: "43", name: "PRETHIN JEBADOS H", admissionNo: "E042604366" },
+      { rollNo: "44", name: "RITHIK K", admissionNo: "E042605633" },
+      { rollNo: "45", name: "SANJITH S", admissionNo: "E042606744" },
+      { rollNo: "46", name: "SANOJ M", admissionNo: "E042606776" },
+      { rollNo: "47", name: "SARAVANAKUMAR S", admissionNo: "E042606544" },
+      { rollNo: "48", name: "SHIVAPRANAV S M", admissionNo: "E042606645" },
+      { rollNo: "49", name: "SUGAVARSHINI N", admissionNo: "E04260749" },
+      { rollNo: "50", name: "SUJITHA G", admissionNo: "E042604100" },
+      { rollNo: "51", name: "SYED TANWEER HUSSAIN", admissionNo: "E042604275" },
+      { rollNo: "52", name: "VINOTH V", admissionNo: "E042604365" },
+      { rollNo: "53", name: "YASWANTH A G", admissionNo: "E042602720" }
+    ];
 
-    // Compress heavy image files before sending to Firebase
     const compressAndConvertImage = (file, callback) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -84,7 +138,7 @@
         img.src = event.target.result;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_SIZE = 250; // Compress image down to small 250px square
+          const MAX_SIZE = 250;
           let width = img.width;
           let height = img.height;
 
@@ -114,9 +168,15 @@
       const [candidates, setCandidates] = useState(DEFAULT_CANDIDATES);
       const [votes, setVotes] = useState({ c1: 0, c2: 0, c3: 0 });
       const [votedStudents, setVotedStudents] = useState([]);
+      const [detailedVotes, setDetailedVotes] = useState([]); // Stores audit log for admin
       const [electionStage, setElectionStage] = useState("voting");
 
-      const [studentId, setStudentId] = useState("");
+      // Student Auth State
+      const [inputName, setInputName] = useState("");
+      const [inputRollNo, setInputRollNo] = useState("");
+      const [inputAdmissionNo, setInputAdmissionNo] = useState("");
+      const [loggedInStudent, setLoggedInStudent] = useState(null);
+
       const [selectedCandidate, setSelectedCandidate] = useState("");
       const [message, setMessage] = useState(null);
       const [voteSuccess, setVoteSuccess] = useState(false);
@@ -140,15 +200,16 @@
             if (data) {
               if (data.votes) setVotes(data.votes);
               if (data.votedStudents) setVotedStudents(data.votedStudents);
+              if (data.detailedVotes) setDetailedVotes(data.detailedVotes);
               if (data.candidates && Array.isArray(data.candidates) && data.candidates.length > 0) {
                 setCandidates(data.candidates);
               }
               if (data.stage) setElectionStage(data.stage);
             } else {
-              // Initialize database with default data if empty
               db.ref("election_data").set({
                 votes: { c1: 0, c2: 0, c3: 0 },
                 votedStudents: [],
+                detailedVotes: [],
                 candidates: DEFAULT_CANDIDATES,
                 stage: "voting"
               });
@@ -158,31 +219,105 @@
         }
       }, []);
 
-      const syncDatabase = (updatedVotes, updatedStudents, updatedCandidates, updatedStage) => {
+      const syncDatabase = (updatedVotes, updatedStudents, updatedDetailedVotes, updatedCandidates, updatedStage) => {
         const v = updatedVotes !== undefined ? updatedVotes : votes;
         const s = updatedStudents !== undefined ? updatedStudents : votedStudents;
+        const d = updatedDetailedVotes !== undefined ? updatedDetailedVotes : detailedVotes;
         const c = updatedCandidates !== undefined ? updatedCandidates : candidates;
         const st = updatedStage !== undefined ? updatedStage : electionStage;
 
         setVotes(v);
         setVotedStudents(s);
+        setDetailedVotes(d);
         setCandidates(c);
         setElectionStage(st);
 
         if (db) {
-          db.ref("election_data").set({ votes: v, votedStudents: s, candidates: c, stage: st })
+          db.ref("election_data").set({ votes: v, votedStudents: s, detailedVotes: d, candidates: c, stage: st })
             .catch((err) => {
-              console.error("Firebase write error:", err);
-              setMessage({ type: "error", text: "Firebase Error: " + err.message + ". Check Firebase Rules!" });
+              setMessage({ type: "error", text: "Firebase Error: " + err.message });
             });
         }
+      };
+
+      // Student Login Handler
+      const handleStudentLogin = (e) => {
+        e.preventDefault();
+        const cleanName = inputName.trim().toUpperCase();
+        const cleanAdmission = inputAdmissionNo.trim().toUpperCase();
+        const cleanRoll = inputRollNo.trim().toUpperCase();
+
+        if (!cleanName || !cleanAdmission || !cleanRoll) {
+          setMessage({ type: "error", text: "Please fill in Name, Roll Number, and Admission Number!" });
+          return;
+        }
+
+        // Search record in register
+        const studentMatch = STUDENT_ROSTER.find(s => 
+          s.name === cleanName && 
+          s.admissionNo === cleanAdmission
+        );
+
+        if (!studentMatch) {
+          setMessage({ type: "error", text: "Credentials not found! Check Name and Admission Number (e.g., E04260XXXX)." });
+          return;
+        }
+
+        if (votedStudents.includes(studentMatch.admissionNo)) {
+          setMessage({ type: "error", text: `Student '${studentMatch.name}' (${studentMatch.admissionNo}) has ALREADY voted!` });
+          return;
+        }
+
+        setLoggedInStudent({ ...studentMatch, enteredRollNo: cleanRoll });
+        setMessage({ type: "success", text: `Welcome, ${studentMatch.name}! Select a candidate to cast your vote.` });
+      };
+
+      // Vote Submission Handler
+      const handleVoteSubmit = (e) => {
+        e.preventDefault();
+
+        if (!loggedInStudent) {
+          setMessage({ type: "error", text: "Please log in first!" });
+          return;
+        }
+
+        if (!selectedCandidate) {
+          setMessage({ type: "error", text: "Please select a candidate before submitting." });
+          return;
+        }
+
+        const candidateObj = candidates.find(c => c.id === selectedCandidate);
+        const candidateName = candidateObj ? candidateObj.name : "Unknown";
+
+        const updatedVotes = { ...votes, [selectedCandidate]: (votes[selectedCandidate] || 0) + 1 };
+        const updatedVotedStudents = [...votedStudents, loggedInStudent.admissionNo];
+        
+        const newAuditLogEntry = {
+          studentName: loggedInStudent.name,
+          admissionNo: loggedInStudent.admissionNo,
+          rollNo: loggedInStudent.enteredRollNo || loggedInStudent.rollNo,
+          votedFor: candidateName,
+          timestamp: new Date().toLocaleTimeString() + ", " + new Date().toLocaleDateString()
+        };
+
+        const updatedDetailedVotes = [...detailedVotes, newAuditLogEntry];
+
+        syncDatabase(updatedVotes, updatedVotedStudents, updatedDetailedVotes);
+
+        setVoteSuccess(true);
+        setMessage(null);
+        setSelectedCandidate("");
+        setLoggedInStudent(null);
+        setInputName("");
+        setInputRollNo("");
+        setInputAdmissionNo("");
       };
 
       const handleAdminLogin = (e) => {
         e.preventDefault();
         if (enteredPin === SECRET_ADMIN_PIN) {
           setIsAdminAuthenticated(true);
-          setMessage({ type: "success", text: "Admin unlocked!" });
+          setMessage({ type: "success", text: "Admin panel unlocked!" });
         } else {
           setMessage({ type: "error", text: "Incorrect Admin PIN!" });
         }
@@ -195,11 +330,11 @@
         compressAndConvertImage(file, (compressedBase64) => {
           if (targetCandidateId) {
             const updated = candidates.map((c) => (c.id === targetCandidateId ? { ...c, avatar: compressedBase64 } : c));
-            syncDatabase(undefined, undefined, updated);
+            syncDatabase(undefined, undefined, undefined, updated);
             setMessage({ type: "success", text: "Candidate photo updated!" });
           } else {
             setNewCandPhoto(compressedBase64);
-            setMessage({ type: "success", text: "Photo attached! Now click 'Add Candidate'." });
+            setMessage({ type: "success", text: "Photo attached! Click 'Add Candidate'." });
           }
         });
       };
@@ -224,7 +359,7 @@
         const updatedCand = [...candidates, newCandidate];
         const updatedVotes = { ...votes, [newId]: 0 };
 
-        syncDatabase(updatedVotes, undefined, updatedCand);
+        syncDatabase(updatedVotes, undefined, undefined, updatedCand);
 
         setNewCandName("");
         setNewCandBadge("");
@@ -233,49 +368,14 @@
         setMessage({ type: "success", text: `Candidate '${newCandidate.name}' added successfully!` });
       };
 
-      const handleVoteSubmit = (e) => {
-        e.preventDefault();
-        const formattedId = studentId.trim().toUpperCase();
-
-        if (!formattedId) {
-          setMessage({ type: "error", text: "Please enter your Roll Number / ID." });
-          return;
-        }
-
-        if (!VALID_STUDENTS.includes(formattedId)) {
-          setMessage({ type: "error", text: "Invalid Roll Number. Allowed IDs: STU101 to STU130." });
-          return;
-        }
-
-        if (votedStudents.includes(formattedId)) {
-          setMessage({ type: "error", text: `Student ID '${formattedId}' has already voted!` });
-          return;
-        }
-
-        if (!selectedCandidate) {
-          setMessage({ type: "error", text: "Please select a candidate to vote." });
-          return;
-        }
-
-        const updatedVotes = { ...votes, [selectedCandidate]: (votes[selectedCandidate] || 0) + 1 };
-        const updatedVotedStudents = [...votedStudents, formattedId];
-
-        syncDatabase(updatedVotes, updatedVotedStudents);
-
-        setVoteSuccess(true);
-        setMessage(null);
-        setStudentId("");
-        setSelectedCandidate("");
-      };
-
       const triggerConfetti = () => {
         if (window.confetti) window.confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       };
 
       const resetElection = () => {
-        if (confirm("Are you sure you want to reset all votes and candidates?")) {
-          syncDatabase({ c1: 0, c2: 0, c3: 0 }, [], DEFAULT_CANDIDATES, "voting");
-          setMessage({ type: "info", text: "Election reset to initial state." });
+        if (confirm("Are you sure you want to reset all votes and candidate lists?")) {
+          syncDatabase({ c1: 0, c2: 0, c3: 0 }, [], [], DEFAULT_CANDIDATES, "voting");
+          setMessage({ type: "info", text: "Election portal reset to default." });
         }
       };
 
@@ -297,13 +397,13 @@
       const winner = getWinner();
 
       return (
-        <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto px-4 py-8">
           <header className="bg-slate-900 text-white rounded-2xl p-6 mb-6 shadow-xl flex justify-between items-center">
             <div>
               <div className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs font-semibold uppercase tracking-wider mb-2">
-                Official Department Portal
+                Official Class Representative Election
               </div>
-              <h1 className="text-2xl font-extrabold">Class Representative Election</h1>
+              <h1 className="text-2xl font-extrabold">Student Voting & Management Portal</h1>
             </div>
             <div className="bg-slate-800 border border-slate-700 px-4 py-2 rounded-xl text-center">
               <span className="text-xs text-slate-400 block uppercase">Status</span>
@@ -315,9 +415,9 @@
 
           {/* Navigation Tabs */}
           <div className="flex bg-white p-1.5 rounded-xl shadow-sm border mb-6 gap-1">
-            <button onClick={() => { setActiveTab("vote"); setVoteSuccess(false); }} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'vote' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>🗳️ Cast Vote</button>
+            <button onClick={() => { setActiveTab("vote"); setVoteSuccess(false); }} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'vote' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>🗳️️ Student Portal</button>
             <button onClick={() => setActiveTab("candidates")} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'candidates' ? 'bg-blue-600 text-white' : 'text-slate-600'}`}>👥 Candidates ({candidates.length})</button>
-            <button onClick={() => setActiveTab("admin")} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'admin' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>🔒 Admin</button>
+            <button onClick={() => setActiveTab("admin")} className={`flex-1 py-2.5 rounded-lg font-medium text-sm ${activeTab === 'admin' ? 'bg-slate-900 text-white' : 'text-slate-600'}`}>🔒 Admin Panel</button>
           </div>
 
           {message && (
@@ -327,7 +427,7 @@
             </div>
           )}
 
-          {/* TAB 1: VOTE */}
+          {/* TAB 1: STUDENT LOGIN & VOTE */}
           {activeTab === "vote" && (
             <div className="bg-white rounded-2xl shadow-sm border p-6">
               {voteSuccess ? (
@@ -335,31 +435,77 @@
                   <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto text-3xl font-bold">✓</div>
                   <h2 className="text-2xl font-extrabold text-slate-900">Your Vote Has Been Cast Successfully!</h2>
                   <p className="text-sm text-slate-500 max-w-md mx-auto">
-                    Thank you for participating. Your response has been securely recorded.
+                    Thank you for participating. Your response has been securely authenticated and logged.
                   </p>
                   <button onClick={() => setVoteSuccess(false)} className="mt-4 bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl text-sm">
-                    Back to Voting Form
+                    Back to Student Login
                   </button>
                 </div>
               ) : electionStage === "closed" ? (
                 <div className="bg-amber-50 border border-amber-200 text-amber-800 p-8 rounded-xl text-center">
                   <h3 className="text-lg font-bold">Voting Has Concluded</h3>
-                  <p className="text-sm mt-1">The election process is completed. Thank you!</p>
+                  <p className="text-sm mt-1">The election process is closed. Thank you!</p>
                 </div>
-              ) : (
-                <form onSubmit={handleVoteSubmit} className="space-y-6">
-                  <h2 className="text-xl font-bold text-slate-900">Cast Your Secret Vote</h2>
-                  
+              ) : !loggedInStudent ? (
+                /* STEP 1: STUDENT LOGIN FORM */
+                <form onSubmit={handleStudentLogin} className="space-y-5 max-w-md mx-auto py-4">
+                  <div className="text-center mb-6">
+                    <h2 className="text-xl font-bold text-slate-900">Student Identity Verification</h2>
+                    <p className="text-xs text-slate-500 mt-1">Enter your details exactly as recorded in official class records.</p>
+                  </div>
+
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Student Roll Number / ID</label>
+                    <label className="block text-xs font-bold uppercase text-slate-700 mb-1">1. Student Full Name</label>
                     <input
                       type="text"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value)}
-                      placeholder="e.g. STU101"
-                      className="w-full px-4 py-3 border rounded-xl font-mono uppercase text-lg"
+                      required
+                      placeholder="e.g. ABISHA S"
+                      value={inputName}
+                      onChange={(e) => setInputName(e.target.value)}
+                      className="w-full px-4 py-2.5 border rounded-xl font-semibold uppercase text-slate-800"
                     />
-                    <p className="text-xs text-slate-500 mt-1">Allowed range: STU101 to STU130</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 mb-1">2. Roll Number</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. 2 or STU102"
+                      value={inputRollNo}
+                      onChange={(e) => setInputRollNo(e.target.value)}
+                      className="w-full px-4 py-2.5 border rounded-xl font-semibold uppercase text-slate-800"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 mb-1">3. Admission Number</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. E042606639"
+                      value={inputAdmissionNo}
+                      onChange={(e) => setInputAdmissionNo(e.target.value)}
+                      className="w-full px-4 py-2.5 border rounded-xl font-mono uppercase text-slate-800"
+                    />
+                  </div>
+
+                  <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-xl shadow hover:bg-blue-700 transition">
+                    Authenticate & Proceed to Vote →
+                  </button>
+                </form>
+              ) : (
+                /* STEP 2: CAST VOTE FORM */
+                <form onSubmit={handleVoteSubmit} className="space-y-6">
+                  <div className="flex justify-between items-center bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                    <div>
+                      <span className="text-xs font-bold text-blue-600 uppercase block">Authenticated Student</span>
+                      <div className="font-extrabold text-slate-900 text-lg">{loggedInStudent.name}</div>
+                      <div className="text-xs text-slate-600 font-mono">Admission No: {loggedInStudent.admissionNo} | Roll No: {loggedInStudent.enteredRollNo}</div>
+                    </div>
+                    <button type="button" onClick={() => setLoggedInStudent(null)} className="text-xs text-red-600 font-bold border border-red-200 px-3 py-1.5 rounded-lg bg-white">
+                      Switch Student
+                    </button>
                   </div>
 
                   <div>
@@ -382,8 +528,8 @@
                     </div>
                   </div>
 
-                  <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3.5 px-6 rounded-xl shadow text-base">
-                    Submit Vote Anonymously
+                  <button type="submit" className="w-full bg-emerald-600 text-white font-bold py-3.5 px-6 rounded-xl shadow text-base hover:bg-emerald-700 transition">
+                    Confirm & Submit Final Vote
                   </button>
                 </form>
               )}
@@ -408,14 +554,14 @@
             </div>
           )}
 
-          {/* TAB 3: ADMIN */}
+          {/* TAB 3: ADMIN PANEL */}
           {activeTab === "admin" && (
             <div>
               {!isAdminAuthenticated ? (
                 <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border p-8 text-center space-y-4">
                   <div className="text-3xl">🔒</div>
                   <h2 className="text-xl font-bold">Admin Portal</h2>
-                  <p className="text-xs text-slate-500">Enter secret PIN to view live results, add candidates, and upload photos.</p>
+                  <p className="text-xs text-slate-500">Enter secret PIN to view live voting status and student choice audit logs.</p>
                   <form onSubmit={handleAdminLogin} className="space-y-4">
                     <input
                       type="password"
@@ -431,10 +577,10 @@
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* LIVE RESULTS (ADMIN ONLY) */}
+                  {/* LIVE RESULTS */}
                   <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-4">
                     <div className="flex justify-between items-center">
-                      <h2 className="text-xl font-bold">📊 Live Results ({totalVotes} Total Votes)</h2>
+                      <h2 className="text-xl font-bold">📊 Live Tally ({totalVotes} Total Votes)</h2>
                       {electionStage === "closed" && winner && (
                         <button onClick={triggerConfetti} className="bg-amber-500 text-white text-xs font-bold px-3 py-2 rounded-lg">
                           🎉 Celebrate Winner
@@ -479,16 +625,43 @@
                         );
                       })}
                     </div>
+                  </div>
 
-                    {/* Voted Students List */}
-                    <div className="pt-4 border-t">
-                      <h3 className="text-xs font-bold uppercase text-slate-500 mb-2">Voted Students ({votedStudents.length} / 30)</h3>
-                      <div className="flex flex-wrap gap-1.5">
-                        {votedStudents.map((id) => (
-                          <span key={id} className="bg-slate-100 border text-slate-700 px-2 py-1 rounded font-mono text-xs font-bold">{id}</span>
-                        ))}
+                  {/* ADMIN EXCLUSIVE: VOTER CHOICES AUDIT TABLE */}
+                  <div className="bg-white rounded-2xl shadow-sm border p-6">
+                    <h2 className="text-lg font-bold text-slate-900 mb-1">👁️ Detailed Voter Audit Log</h2>
+                    <p className="text-xs text-slate-500 mb-4">Admin privilege: List of students and the candidate they voted for.</p>
+
+                    {detailedVotes.length === 0 ? (
+                      <div className="p-4 bg-slate-50 text-slate-500 rounded-xl text-center text-xs">No votes recorded yet.</div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-100 text-slate-700 font-bold uppercase border-b">
+                              <th className="p-2.5">#</th>
+                              <th className="p-2.5">Student Name</th>
+                              <th className="p-2.5">Admission No</th>
+                              <th className="p-2.5">Roll No</th>
+                              <th className="p-2.5">Voted Candidate</th>
+                              <th className="p-2.5">Time</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y font-medium text-slate-800">
+                            {detailedVotes.map((log, index) => (
+                              <tr key={index} className="hover:bg-slate-50">
+                                <td className="p-2.5 text-slate-400">{index + 1}</td>
+                                <td className="p-2.5 font-bold">{log.studentName}</td>
+                                <td className="p-2.5 font-mono">{log.admissionNo}</td>
+                                <td className="p-2.5 font-mono">{log.rollNo}</td>
+                                <td className="p-2.5 font-bold text-blue-600">{log.votedFor}</td>
+                                <td className="p-2.5 text-slate-500">{log.timestamp}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Add New Candidate */}
@@ -517,7 +690,7 @@
 
                   {/* Photo Upload Manager */}
                   <div className="bg-white rounded-2xl shadow-sm border p-6">
-                    <h2 className="text-lg font-bold mb-2">📷 Change Existing Candidate Photos</h2>
+                    <h2 className="text-lg font-bold mb-2">📷 Change Candidate Photos</h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                       {candidates.map((cand) => (
                         <div key={cand.id} className="border p-4 rounded-xl text-center bg-slate-50">
@@ -540,8 +713,8 @@
                   <div className="bg-white rounded-2xl shadow-sm border p-6 space-y-4">
                     <h2 className="text-lg font-bold">⚙️ Election Control</h2>
                     <div className="flex gap-4">
-                      <button onClick={() => syncDatabase(undefined, undefined, undefined, "voting")} className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${electionStage === 'voting' ? 'bg-green-600 text-white' : 'bg-slate-100'}`}>Open Voting</button>
-                      <button onClick={() => { syncDatabase(undefined, undefined, undefined, "closed"); triggerConfetti(); }} className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${electionStage === 'closed' ? 'bg-amber-600 text-white' : 'bg-slate-100'}`}>Close Voting & Announce Winner</button>
+                      <button onClick={() => syncDatabase(undefined, undefined, undefined, undefined, "voting")} className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${electionStage === 'voting' ? 'bg-green-600 text-white' : 'bg-slate-100'}`}>Open Voting</button>
+                      <button onClick={() => { syncDatabase(undefined, undefined, undefined, undefined, "closed"); triggerConfetti(); }} className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${electionStage === 'closed' ? 'bg-amber-600 text-white' : 'bg-slate-100'}`}>Close Voting & Announce Winner</button>
                     </div>
                     <button onClick={resetElection} className="bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-xs font-bold w-full hover:bg-red-100 transition">
                       Reset Election Data
